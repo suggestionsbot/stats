@@ -4,15 +4,52 @@ import threading
 from typing import Literal
 
 from flask import Flask, render_template, request, abort, redirect, flash
+from pymongo import MongoClient
 
-app = Flask(__name__)
-app.secret_key = os.environ["SECRET_KEY"]
+from stats import get_total_guild_count
+
 log = logging.getLogger(__name__)
 logging.basicConfig(
     format="%(levelname)-7s | %(asctime)s | %(filename)12s:%(funcName)-12s | %(message)s",
     datefmt="%I:%M:%S %p %d/%m/%Y",
     level=logging.INFO,
 )
+
+app = Flask(__name__)
+app.client = MongoClient(os.environ["MONGO_URL"])
+app.database = app.client["suggestions-rewrite"]
+app.secret_key = os.environ["SECRET_KEY"]
+app.stats = [
+    [
+        {"title": "Total guilds", "description": "..."},
+        {"title": "Total users", "description": "..."},
+        {
+            "title": "Active guild count",
+            "description": "...",
+        },
+        {
+            "title": "Active user count",
+            "description": "...",
+        },
+    ],
+    [
+        {"title": "Total suggestions", "description": "..."},
+        {"title": "Total open suggestions", "description": "..."},
+        {"title": "Total resolved suggestions", "description": "..."},
+        {"title": "Average suggestions per guild", "description": "..."},
+        {"title": "Average suggestions per member", "description": "..."},
+    ],
+    [
+        {
+            "title": "Guilds with dm messages disabled",
+            "description": "... guilds have dm messages disabled",
+        },
+        {
+            "title": "Users with dm messages disabled",
+            "description": "... users have dm messages disabled disabled",
+        },
+    ],
+]
 
 nav_links: list[dict[Literal["name", "url"], str]] = [
     {"name": "Home", "url": "/"},
@@ -38,7 +75,10 @@ def index():
 @app.route("/aggregate")
 def aggregate_stats():
     return render_template(
-        "aggregate_stats.html", nav_links=nav_links, current_nav_link="Aggregate"
+        "aggregate_stats.html",
+        nav_links=nav_links,
+        current_nav_link="Aggregate",
+        stats_items=app.stats,
     )
 
 
@@ -67,7 +107,32 @@ def update_stats():
 
 
 def populate_stats():
-    pass
+    # Total guilds
+    app.stats[0][0]["description"] = get_total_guild_count(
+        app.database["cluster_guild_counts"], 6
+    )
+    # Total users
+    app.stats[0][1]["description"] = "Unknown"
+    # Active guild count
+    app.stats[0][2]["description"] = "Unknown"
+    # Active user count
+    app.stats[0][3]["description"] = "Unknown"
+
+    # Total suggestions
+    app.stats[1][0]["description"] = "Unknown"
+    # Total open suggestions
+    app.stats[1][1]["description"] = "Unknown"
+    # Total resolved suggestions
+    app.stats[1][2]["description"] = "Unknown"
+    # Average suggestions per guild
+    app.stats[1][3]["description"] = "Unknown"
+    # Average suggestions per member
+    app.stats[1][4]["description"] = "Unknown"
+
+    # Guilds with dm messages disabled
+    app.stats[2][0]["description"] = "Unknown"
+    # Users with dm messages disabled
+    app.stats[2][1]["description"] = "Unknown"
 
 
 target = threading.Thread(target=populate_stats)
