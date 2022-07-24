@@ -6,7 +6,7 @@ from typing import Literal
 from flask import Flask, render_template, request, abort, redirect, flash
 from pymongo import MongoClient
 
-from stats import get_total_guild_count
+import stats
 
 log = logging.getLogger(__name__)
 logging.basicConfig(
@@ -34,7 +34,7 @@ app.stats = [
     ],
     [
         {"title": "Total suggestions", "description": "..."},
-        {"title": "Total open suggestions", "description": "..."},
+        {"title": "Total pending suggestions", "description": "..."},
         {"title": "Total resolved suggestions", "description": "..."},
         {"title": "Average suggestions per guild", "description": "..."},
         {"title": "Average suggestions per member", "description": "..."},
@@ -108,24 +108,34 @@ def update_stats():
 
 def populate_stats():
     # Total guilds
-    app.stats[0][0]["description"] = get_total_guild_count(
+    app.stats[0][0]["description"] = stats.get_total_guild_count(
         app.database["cluster_guild_counts"], 6
     )
     # Total users
     app.stats[0][1]["description"] = "Unknown"
     # Active guild count
-    app.stats[0][2]["description"] = "Unknown"
+    total_active_guilds = stats.get_total_active_guilds(app.database["guild_configs"])
+    app.stats[0][2]["description"] = total_active_guilds
     # Active user count
-    app.stats[0][3]["description"] = "Unknown"
+    app.stats[0][3]["description"] = stats.get_total_active_users(
+        app.database["member_stats"]
+    )
 
     # Total suggestions
-    app.stats[1][0]["description"] = "Unknown"
-    # Total open suggestions
-    app.stats[1][1]["description"] = "Unknown"
+    total_suggestions = stats.get_total_suggestions(app.database["suggestions"])
+    app.stats[1][0]["description"] = total_suggestions
+    # Total pending suggestions
+    app.stats[1][1]["description"] = stats.get_total_suggestions(
+        app.database["suggestions"], {"state": "pending"}
+    )
     # Total resolved suggestions
-    app.stats[1][2]["description"] = "Unknown"
+    app.stats[1][2]["description"] = stats.get_total_suggestions(
+        app.database["suggestions"], {"state": {"$ne": "pending"}}
+    )
     # Average suggestions per guild
-    app.stats[1][3]["description"] = "Unknown"
+    app.stats[1][3]["description"] = str(
+        round(int(total_suggestions) / int(total_active_guilds), 2)
+    )
     # Average suggestions per member
     app.stats[1][4]["description"] = "Unknown"
 
