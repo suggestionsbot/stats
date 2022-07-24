@@ -96,16 +96,17 @@
     </header>
     <main>
         <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-                {% for message in messages %}
-                    <div class="border-4 border-dotted border-black-900 rounded-lg content-center">
-                        <div>{{ message }}</div>
-                    </div>
-                {% endfor %}
-            <br><br>
-        {% endif %}
-    {% endwith %}
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 mb-4 text-sm text-blue-700 bg-blue-100 rounded-lg dark:bg-blue-200 dark:text-blue-800"
+                             role="alert">
+                            <span class="font-medium">{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                    <br><br>
+                {% endif %}
+            {% endwith %}
             <div class="border-4 border-double border-gray-200 rounded-lg p-8">
                 {% block content %}{% endblock %}
             </div>
