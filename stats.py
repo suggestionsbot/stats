@@ -60,3 +60,9 @@ def get_total_fully_configured_guilds(collection: pymongo.collection.Collection)
         projection={"_id": 1},
     )
     return str(len(list(total)))
+
+
+def get_cluster_count(collection: pymongo.collection.Collection) -> int:
+    assert collection.name == "cluster_guild_counts"
+    total = collection.distinct("cluster_id")
+    return len(total) - 1  # Remove cluster 0 (debug cluster)

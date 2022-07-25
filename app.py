@@ -111,9 +111,11 @@ def update_stats():
 
 
 def populate_stats():
+    total_clusters = stats.get_cluster_count(app.database["cluster_guild_counts"])
+
     # Total guilds
     app.stats[0][0]["description"] = stats.get_total_guild_count(
-        app.database["cluster_guild_counts"], 6
+        app.database["cluster_guild_counts"], total_clusters
     )
     # Total users
     app.stats[0][1]["description"] = "Unknown"
