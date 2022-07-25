@@ -20,9 +20,10 @@ def get_total_active_guilds(collection: pymongo.collection.Collection) -> str:
     return str(collection.count_documents({}))
 
 
-def get_total_active_users(collection: pymongo.collection.Collection) -> str:
+def get_distinct_total_active_users(collection: pymongo.collection.Collection) -> str:
     assert collection.name == "member_stats"
-    return str(collection.count_documents({}))
+    total = collection.distinct("member_id")
+    return str(len(total))
 
 
 def get_total_suggestions(
@@ -31,3 +32,31 @@ def get_total_suggestions(
     filter_by = filter_by or {}
     assert collection.name == "suggestions"
     return str(collection.count_documents(filter_by))
+
+
+def get_total_guilds_with_dms_disabled(
+    collection: pymongo.collection.Collection,
+) -> str:
+    assert collection.name == "guild_configs"
+    return str(collection.count_documents({"dm_messages_disabled": True}))
+
+
+def get_total_users_with_dms_disabled(
+    collection: pymongo.collection.Collection,
+) -> str:
+    assert collection.name == "user_configs"
+    return str(collection.count_documents({"dm_messages_disabled": True}))
+
+
+def get_total_fully_configured_guilds(collection: pymongo.collection.Collection) -> str:
+    assert collection.name == "guild_configs"
+    total = collection.find(
+        {
+            "$and": [
+                {"log_channel_id": {"$exists": True}},
+                {"suggestions_channel_id": {"$exists": True}},
+            ]
+        },
+        projection={"_id": 1},
+    )
+    return str(len(list(total)))

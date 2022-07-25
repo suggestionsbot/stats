@@ -37,16 +37,20 @@ app.stats = [
         {"title": "Total pending suggestions", "description": "..."},
         {"title": "Total resolved suggestions", "description": "..."},
         {"title": "Average suggestions per guild", "description": "..."},
-        {"title": "Average suggestions per member", "description": "..."},
+        {"title": "Average suggestions per user", "description": "..."},
     ],
     [
         {
+            "title": "Fully configured guilds",
+            "description": "...",
+        },
+        {
             "title": "Guilds with dm messages disabled",
-            "description": "... guilds have dm messages disabled",
+            "description": "...",
         },
         {
             "title": "Users with dm messages disabled",
-            "description": "... users have dm messages disabled disabled",
+            "description": "...",
         },
     ],
 ]
@@ -117,9 +121,10 @@ def populate_stats():
     total_active_guilds = stats.get_total_active_guilds(app.database["guild_configs"])
     app.stats[0][2]["description"] = total_active_guilds
     # Active user count
-    app.stats[0][3]["description"] = stats.get_total_active_users(
+    total_active_users = stats.get_distinct_total_active_users(
         app.database["member_stats"]
     )
+    app.stats[0][3]["description"] = total_active_users
 
     # Total suggestions
     total_suggestions = stats.get_total_suggestions(app.database["suggestions"])
@@ -137,12 +142,22 @@ def populate_stats():
         round(int(total_suggestions) / int(total_active_guilds), 2)
     )
     # Average suggestions per member
-    app.stats[1][4]["description"] = "Unknown"
+    app.stats[1][4]["description"] = str(
+        round(int(total_suggestions) / int(total_active_users), 2)
+    )
 
+    # Fully configured guilds
+    app.stats[2][0]["description"] = stats.get_total_fully_configured_guilds(
+        app.database["guild_configs"]
+    )
     # Guilds with dm messages disabled
-    app.stats[2][0]["description"] = "Unknown"
+    app.stats[2][1]["description"] = stats.get_total_guilds_with_dms_disabled(
+        app.database["guild_configs"]
+    )
     # Users with dm messages disabled
-    app.stats[2][1]["description"] = "Unknown"
+    app.stats[2][2]["description"] = stats.get_total_users_with_dms_disabled(
+        app.database["user_configs"]
+    )
 
 
 target = threading.Thread(target=populate_stats)
