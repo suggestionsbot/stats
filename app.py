@@ -145,7 +145,7 @@ def populate_stats():
         if os.environ.get("PROD", False):
             stats_db = app.database["site_stats_db"]
             stats_db.insert_one(
-                {"timestamp": datetime.datetime.now(), "stats": app.stats}
+                {"timestamp": datetime.datetime.now(), "aggregate_stats": app.stats}
             )
 
         time.sleep(datetime.timedelta(hours=6).total_seconds())
