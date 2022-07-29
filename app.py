@@ -1,6 +1,8 @@
+import datetime
 import logging
 import os
 import threading
+import time
 from typing import Literal
 
 from flask import Flask, render_template, request, abort, redirect, flash
@@ -86,80 +88,67 @@ def aggregate_stats():
     )
 
 
-@app.route("/stats", methods=["POST", "GET"])
-def update_stats():
-    if request.method == "GET":
-        return render_template("update_stats.html", nav_links=nav_links)
-
-    key = request.args.get("key")
-    form_key = request.form["key"]
-    if not key and not form_key:
-        abort(403)
-
-    if key != os.environ["STATS_KEY"] and form_key != os.environ["STATS_KEY"]:
-        abort(403)
-
-    target = threading.Thread(target=populate_stats)
-    target.start()  # Possible mem leak by not closing?
-
-    if form_key:
-        # User so give nice ui
-        flash("Statistics are refreshing in the background.")
-        return redirect("/", code=302)
-
-    return "", 204
-
-
 def populate_stats():
-    total_clusters = stats.get_cluster_count(app.database["cluster_guild_counts"])
+    while True:
+        total_clusters = stats.get_cluster_count(app.database["cluster_guild_counts"])
 
-    # Total guilds
-    app.stats[0][0]["description"] = stats.get_total_guild_count(
-        app.database["cluster_guild_counts"], total_clusters
-    )
-    # Total users
-    app.stats[0][1]["description"] = "Unknown"
-    # Active guild count
-    total_active_guilds = stats.get_total_active_guilds(app.database["guild_configs"])
-    app.stats[0][2]["description"] = total_active_guilds
-    # Active user count
-    total_active_users = stats.get_distinct_total_active_users(
-        app.database["member_stats"]
-    )
-    app.stats[0][3]["description"] = total_active_users
+        # Total guilds
+        app.stats[0][0]["description"] = stats.get_total_guild_count(
+            app.database["cluster_guild_counts"], total_clusters
+        )
+        # Total users
+        app.stats[0][1]["description"] = "Unknown"
+        # Active guild count
+        total_active_guilds = stats.get_total_active_guilds(
+            app.database["guild_configs"]
+        )
+        app.stats[0][2]["description"] = total_active_guilds
+        # Active user count
+        total_active_users = stats.get_distinct_total_active_users(
+            app.database["member_stats"]
+        )
+        app.stats[0][3]["description"] = total_active_users
 
-    # Total suggestions
-    total_suggestions = stats.get_total_suggestions(app.database["suggestions"])
-    app.stats[1][0]["description"] = total_suggestions
-    # Total pending suggestions
-    app.stats[1][1]["description"] = stats.get_total_suggestions(
-        app.database["suggestions"], {"state": "pending"}
-    )
-    # Total resolved suggestions
-    app.stats[1][2]["description"] = stats.get_total_suggestions(
-        app.database["suggestions"], {"state": {"$ne": "pending"}}
-    )
-    # Average suggestions per guild
-    app.stats[1][3]["description"] = str(
-        round(int(total_suggestions) / int(total_active_guilds), 2)
-    )
-    # Average suggestions per member
-    app.stats[1][4]["description"] = str(
-        round(int(total_suggestions) / int(total_active_users), 2)
-    )
+        # Total suggestions
+        total_suggestions = stats.get_total_suggestions(app.database["suggestions"])
+        app.stats[1][0]["description"] = total_suggestions
+        # Total pending suggestions
+        app.stats[1][1]["description"] = stats.get_total_suggestions(
+            app.database["suggestions"], {"state": "pending"}
+        )
+        # Total resolved suggestions
+        app.stats[1][2]["description"] = stats.get_total_suggestions(
+            app.database["suggestions"], {"state": {"$ne": "pending"}}
+        )
+        # Average suggestions per guild
+        app.stats[1][3]["description"] = str(
+            round(int(total_suggestions) / int(total_active_guilds), 2)
+        )
+        # Average suggestions per member
+        app.stats[1][4]["description"] = str(
+            round(int(total_suggestions) / int(total_active_users), 2)
+        )
 
-    # Fully configured guilds
-    app.stats[2][0]["description"] = stats.get_total_fully_configured_guilds(
-        app.database["guild_configs"]
-    )
-    # Guilds with dm messages disabled
-    app.stats[2][1]["description"] = stats.get_total_guilds_with_dms_disabled(
-        app.database["guild_configs"]
-    )
-    # Users with dm messages disabled
-    app.stats[2][2]["description"] = stats.get_total_users_with_dms_disabled(
-        app.database["user_configs"]
-    )
+        # Fully configured guilds
+        app.stats[2][0]["description"] = stats.get_total_fully_configured_guilds(
+            app.database["guild_configs"]
+        )
+        # Guilds with dm messages disabled
+        app.stats[2][1]["description"] = stats.get_total_guilds_with_dms_disabled(
+            app.database["guild_configs"]
+        )
+        # Users with dm messages disabled
+        app.stats[2][2]["description"] = stats.get_total_users_with_dms_disabled(
+            app.database["user_configs"]
+        )
+
+        if os.environ.get("PROD", False):
+            stats_db = app.database["site_stats_db"]
+            stats_db.insert_one(
+                {"timestamp": datetime.datetime.now(), "stats": app.stats}
+            )
+
+        time.sleep(datetime.timedelta(hours=6).total_seconds())
 
 
 target = threading.Thread(target=populate_stats)
