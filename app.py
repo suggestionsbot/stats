@@ -48,8 +48,9 @@ def index():
 @app.route("/aggregate")
 def aggregate_stats():
     return render_template(
-        "aggregate_stats.html",
+        "stats_view.html",
         nav_links=nav_links,
+        header="Aggregate Statistics",
         current_nav_link="Aggregate",
         stats_items=app.stats_container.aggregate_stats,
     )
@@ -58,8 +59,9 @@ def aggregate_stats():
 @app.route("/suggestions")
 def suggestions_stats():
     return render_template(
-        "suggestions_stats.html",
+        "stats_view.html",
         nav_links=nav_links,
+        header="Suggestion Related Statistics",
         current_nav_link="Suggestions Commands",
         stats_items=app.stats_container.command_stats,
     )
