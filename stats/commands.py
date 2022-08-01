@@ -14,11 +14,19 @@ def values_for_cmd(cmd_name: str, collection: Collection) -> tuple[int, int, int
 
 
 def update_commands(container: Container):
-    item = container.command_stats
     collection = container.database["member_stats"]
     for i, name in enumerate(["suggest", "approve", "reject"]):
         (
-            item[i][0]["description"],
-            item[i][1]["description"],
-            item[i][2]["description"],
+            container.suggestions_stats[i][0]["description"],
+            container.suggestions_stats[i][1]["description"],
+            container.suggestions_stats[i][2]["description"],
+        ) = values_for_cmd(name, collection)
+
+    for i, name in enumerate(
+        ["guild_config_get", "guild_config_suggest_channel", "guild_config_log_channel"]
+    ):
+        (
+            container.config_stats[i][0]["description"],
+            container.config_stats[i][1]["description"],
+            container.config_stats[i][2]["description"],
         ) = values_for_cmd(name, collection)

@@ -55,7 +55,7 @@ class Container:
             ],
         ]
 
-        self.command_stats: StatEntry = [
+        self.suggestions_stats: StatEntry = [
             [
                 Entry(title="Suggestion command usage", description="..."),
                 Entry(title="Times succeeded", description="..."),
@@ -68,6 +68,23 @@ class Container:
             ],
             [
                 Entry(title="Reject command usage", description="..."),
+                Entry(title="Times succeeded", description="..."),
+                Entry(title="Times failed", description="..."),
+            ],
+        ]
+        self.config_stats: StatEntry = [
+            [
+                Entry(title="View guild config command usage", description="..."),
+                Entry(title="Times succeeded", description="..."),
+                Entry(title="Times failed", description="..."),
+            ],
+            [
+                Entry(title="Set suggestions channel command usage", description="..."),
+                Entry(title="Times succeeded", description="..."),
+                Entry(title="Times failed", description="..."),
+            ],
+            [
+                Entry(title="Set logs channel usage command usage", description="..."),
                 Entry(title="Times succeeded", description="..."),
                 Entry(title="Times failed", description="..."),
             ],

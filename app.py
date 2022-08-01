@@ -27,6 +27,7 @@ nav_links: list[dict[Literal["name", "url"], str]] = [
     {"name": "Home", "url": "/"},
     {"name": "Aggregate", "url": "/aggregate"},
     {"name": "Suggestions Commands", "url": "/suggestions"},
+    {"name": "Configuration Commands", "url": "/config"},
 ]
 
 
@@ -63,7 +64,18 @@ def suggestions_stats():
         nav_links=nav_links,
         header="Suggestion Related Statistics",
         current_nav_link="Suggestions Commands",
-        stats_items=app.stats_container.command_stats,
+        stats_items=app.stats_container.suggestions_stats,
+    )
+
+
+@app.route("/config")
+def configuration_stats():
+    return render_template(
+        "stats_view.html",
+        nav_links=nav_links,
+        header="Configuration Related Statistics",
+        current_nav_link="Configuration Commands",
+        stats_items=app.stats_container.config_stats,
     )
 
 
