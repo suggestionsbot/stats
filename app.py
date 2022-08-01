@@ -3,21 +3,12 @@ import logging
 import os
 import threading
 import time
-from typing import Literal, TYPE_CHECKING
+from typing import Literal
 
 from flask import Flask, render_template
 from pymongo import MongoClient
 
-from stats import aggregate
-
-if TYPE_CHECKING:
-    from pymongo.database import Database
-
-    class Flask:
-        client: MongoClient = ...
-        database: Database = ...
-        stats: list[list[dict]] = ...
-
+from stats import Container, aggregate, commands
 
 log = logging.getLogger(__name__)
 logging.basicConfig(
@@ -30,45 +21,12 @@ app = Flask(__name__)
 app.client = MongoClient(os.environ["MONGO_URL"])
 app.database = app.client["suggestions-rewrite"]
 app.secret_key = os.environ["SECRET_KEY"]
-app.stats = [
-    [
-        {"title": "Total guilds", "description": "..."},
-        {"title": "Total users", "description": "..."},
-        {
-            "title": "Active guild count",
-            "description": "...",
-        },
-        {
-            "title": "Active user count",
-            "description": "...",
-        },
-    ],
-    [
-        {"title": "Total suggestions", "description": "..."},
-        {"title": "Total pending suggestions", "description": "..."},
-        {"title": "Total resolved suggestions", "description": "..."},
-        {"title": "Average suggestions per guild", "description": "..."},
-        {"title": "Average suggestions per user", "description": "..."},
-    ],
-    [
-        {
-            "title": "Fully configured guilds",
-            "description": "...",
-        },
-        {
-            "title": "Guilds with dm messages disabled",
-            "description": "...",
-        },
-        {
-            "title": "Users with dm messages disabled",
-            "description": "...",
-        },
-    ],
-]
+app.stats_container = Container(app.database)
 
 nav_links: list[dict[Literal["name", "url"], str]] = [
     {"name": "Home", "url": "/"},
     {"name": "Aggregate", "url": "/aggregate"},
+    {"name": "Suggestions Commands", "url": "/suggestions"},
 ]
 
 
@@ -93,13 +51,24 @@ def aggregate_stats():
         "aggregate_stats.html",
         nav_links=nav_links,
         current_nav_link="Aggregate",
-        stats_items=app.stats,
+        stats_items=app.stats_container.aggregate_stats,
+    )
+
+
+@app.route("/suggestions")
+def suggestions_stats():
+    return render_template(
+        "suggestions_stats.html",
+        nav_links=nav_links,
+        current_nav_link="Suggestions Commands",
+        stats_items=app.stats_container.command_stats,
     )
 
 
 def populate_stats():
     while True:
-        aggregate.update_aggregate(app)
+        # aggregate.update_aggregate(app.stats_container)
+        commands.update_commands(app.stats_container)
         time.sleep(datetime.timedelta(hours=6).total_seconds())
 
 

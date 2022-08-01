@@ -2,18 +2,10 @@ from __future__ import annotations
 
 import datetime
 import os
-from typing import TYPE_CHECKING
 
 import pymongo
 
-if TYPE_CHECKING:
-    from pymongo import MongoClient
-    from pymongo.database import Database
-
-    class Flask:
-        client: MongoClient = ...
-        database: Database = ...
-        stats: list[list[dict]] = ...
+from stats import Container
 
 
 def get_total_guild_count(
@@ -83,57 +75,60 @@ def get_cluster_count(collection: pymongo.collection.Collection) -> int:
     return len(total) - 1  # Remove cluster 0 (debug cluster)
 
 
-def update_aggregate(app: Flask):
+def update_aggregate(app: Container):
     total_clusters = get_cluster_count(app.database["cluster_guild_counts"])
 
     # Total guilds
-    app.stats[0][0]["description"] = get_total_guild_count(
+    app.aggregate_stats[0][0]["description"] = get_total_guild_count(
         app.database["cluster_guild_counts"], total_clusters
     )
     # Total users
-    app.stats[0][1]["description"] = "Unknown"
+    app.aggregate_stats[0][1]["description"] = "Unknown"
     # Active guild count
     total_active_guilds = get_total_active_guilds(app.database["guild_configs"])
-    app.stats[0][2]["description"] = total_active_guilds
+    app.aggregate_stats[0][2]["description"] = total_active_guilds
     # Active user count
     total_active_users = get_distinct_total_active_users(app.database["member_stats"])
-    app.stats[0][3]["description"] = total_active_users
+    app.aggregate_stats[0][3]["description"] = total_active_users
 
     # Total suggestions
     total_suggestions = get_total_suggestions(app.database["suggestions"])
-    app.stats[1][0]["description"] = total_suggestions
+    app.aggregate_stats[1][0]["description"] = total_suggestions
     # Total pending suggestions
-    app.stats[1][1]["description"] = get_total_suggestions(
+    app.aggregate_stats[1][1]["description"] = get_total_suggestions(
         app.database["suggestions"], {"state": "pending"}
     )
     # Total resolved suggestions
-    app.stats[1][2]["description"] = get_total_suggestions(
+    app.aggregate_stats[1][2]["description"] = get_total_suggestions(
         app.database["suggestions"], {"state": {"$ne": "pending"}}
     )
     # Average suggestions per guild
-    app.stats[1][3]["description"] = str(
+    app.aggregate_stats[1][3]["description"] = str(
         round(int(total_suggestions) / int(total_active_guilds), 2)
     )
     # Average suggestions per member
-    app.stats[1][4]["description"] = str(
+    app.aggregate_stats[1][4]["description"] = str(
         round(int(total_suggestions) / int(total_active_users), 2)
     )
 
     # Fully configured guilds
-    app.stats[2][0]["description"] = get_total_fully_configured_guilds(
+    app.aggregate_stats[2][0]["description"] = get_total_fully_configured_guilds(
         app.database["guild_configs"]
     )
     # Guilds with dm messages disabled
-    app.stats[2][1]["description"] = get_total_guilds_with_dms_disabled(
+    app.aggregate_stats[2][1]["description"] = get_total_guilds_with_dms_disabled(
         app.database["guild_configs"]
     )
     # Users with dm messages disabled
-    app.stats[2][2]["description"] = get_total_users_with_dms_disabled(
+    app.aggregate_stats[2][2]["description"] = get_total_users_with_dms_disabled(
         app.database["user_configs"]
     )
 
     if os.environ.get("PROD", False):
         stats_db = app.database["site_stats_db"]
         stats_db.insert_one(
-            {"timestamp": datetime.datetime.now(), "aggregate_stats": app.stats}
+            {
+                "timestamp": datetime.datetime.now(),
+                "aggregate_stats": app.aggregate_stats,
+            }
         )
