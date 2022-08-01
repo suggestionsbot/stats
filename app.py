@@ -81,7 +81,7 @@ def configuration_stats():
 
 def populate_stats():
     while True:
-        # aggregate.update_aggregate(app.stats_container)
+        aggregate.update_aggregate(app.stats_container)
         commands.update_commands(app.stats_container)
         time.sleep(datetime.timedelta(hours=6).total_seconds())
 
