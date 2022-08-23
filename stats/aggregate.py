@@ -100,14 +100,17 @@ def update_aggregate(app: Container):
     )
     # Total resolved suggestions
     app.aggregate_stats[1][2]["description"] = get_total_suggestions(
-        app.database["suggestions"], {"state": {"$ne": "pending"}}
+        app.database["suggestions"], {"state": {"$in": ["approved", "rejected"]}}
+    )
+    app.aggregate_stats[1][3]["description"] = get_total_suggestions(
+        app.database["suggestions"], {"state": "cleared"}
     )
     # Average suggestions per guild
-    app.aggregate_stats[1][3]["description"] = str(
+    app.aggregate_stats[1][4]["description"] = str(
         round(int(total_suggestions) / int(total_active_guilds), 2)
     )
     # Average suggestions per member
-    app.aggregate_stats[1][4]["description"] = str(
+    app.aggregate_stats[1][5]["description"] = str(
         round(int(total_suggestions) / int(total_active_users), 2)
     )
 

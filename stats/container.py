@@ -36,6 +36,7 @@ class Container:
                 {"title": "Total suggestions", "description": "..."},
                 {"title": "Total pending suggestions", "description": "..."},
                 {"title": "Total resolved suggestions", "description": "..."},
+                {"title": "Total cleared suggestions", "description": "..."},
                 {"title": "Average suggestions per guild", "description": "..."},
                 {"title": "Average suggestions per user", "description": "..."},
             ],
