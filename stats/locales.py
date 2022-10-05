@@ -5,6 +5,39 @@ from pymongo.collection import Collection
 from stats import Container
 from stats.container import Entry
 
+lookups: dict[str, str] = {
+    "bg": "Bulgarian",
+    "cs": "Czech",
+    "da": "Danish",
+    "de": "German",
+    "el": "Greek",
+    "en-GB": "English, UK",
+    "en-US": "English, US",
+    "es-ES": "Spanish",
+    "fi": "Finnish",
+    "fr": "French",
+    "hi": "Hindi",
+    "hr": "Croatian",
+    "it": "Italian",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "lt": "Lithuanian",
+    "hu": "Hungarian",
+    "nl": "Dutch",
+    "no": "Norwegian",
+    "pl": "Polish",
+    "pt-BR": "Portuguese",
+    "ro": "Romanian",
+    "ru": "Russian",
+    "sv-SE": "Swedish",
+    "th": "Thai",
+    "tr": "Turkish",
+    "uk": "Ukrainian",
+    "vi": "Vietnamese",
+    "zh-CN": "Chinese, China",
+    "zh-TW": "Chinese, Taiwan",
+}
+
 
 def update_aggregate(container: Container):
     collection = container.database["locale_tracking"]
@@ -34,6 +67,7 @@ def update_aggregate(container: Container):
     for chunk in chunks:
         entry = []
         for item in chunk:
-            entry.append(Entry(title=item[0], description=str(item[1])))
+            key = lookups.get(item[0], item[0])
+            entry.append(Entry(title=key, description=str(item[1])))
 
         container.locale_stats.append(entry)
