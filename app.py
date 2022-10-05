@@ -8,7 +8,7 @@ from typing import Literal
 from flask import Flask, render_template
 from pymongo import MongoClient
 
-from stats import Container, aggregate, commands
+from stats import Container, aggregate, commands, locales
 
 log = logging.getLogger(__name__)
 logging.basicConfig(
@@ -28,6 +28,7 @@ nav_links: list[dict[Literal["name", "url"], str]] = [
     {"name": "Aggregate", "url": "/aggregate"},
     {"name": "Suggestions Commands", "url": "/suggestions"},
     {"name": "Configuration Commands", "url": "/config"},
+    {"name": "Locale Data", "url": "/locales"},
 ]
 
 
@@ -79,10 +80,22 @@ def configuration_stats():
     )
 
 
+@app.route("/locales")
+def locale_stats():
+    return render_template(
+        "stats_view.html",
+        nav_links=nav_links,
+        header="Our demographics, by locale.",
+        current_nav_link="Locale Data",
+        stats_items=app.stats_container.locale_stats,
+    )
+
+
 def populate_stats():
     while True:
         aggregate.update_aggregate(app.stats_container)
         commands.update_commands(app.stats_container)
+        locales.update_aggregate(app.stats_container)
         time.sleep(datetime.timedelta(hours=6).total_seconds())
 
 

@@ -90,3 +90,7 @@ class Container:
                 Entry(title="Times failed", description="..."),
             ],
         ]
+
+        self.locale_stats: StatEntry = [
+            [Entry(title="N/A", description="No locale data")]
+        ]
