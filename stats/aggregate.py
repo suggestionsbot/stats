@@ -4,6 +4,7 @@ import datetime
 import os
 
 import pymongo
+from humanize import intcomma
 
 from stats import Container
 
@@ -79,31 +80,33 @@ def update_aggregate(app: Container):
     total_clusters = get_cluster_count(app.database["cluster_guild_counts"])
 
     # Total guilds
-    app.aggregate_stats[0][0]["description"] = get_total_guild_count(
-        app.database["cluster_guild_counts"], total_clusters
+    app.aggregate_stats[0][0]["description"] = intcomma(
+        get_total_guild_count(app.database["cluster_guild_counts"], total_clusters)
     )
     # Total users
     app.aggregate_stats[0][1]["description"] = "Unknown"
     # Active guild count
     total_active_guilds = get_total_active_guilds(app.database["guild_configs"])
-    app.aggregate_stats[0][2]["description"] = total_active_guilds
+    app.aggregate_stats[0][2]["description"] = intcomma(total_active_guilds)
     # Active user count
     total_active_users = get_distinct_total_active_users(app.database["member_stats"])
-    app.aggregate_stats[0][3]["description"] = total_active_users
+    app.aggregate_stats[0][3]["description"] = intcomma(total_active_users)
 
     # Total suggestions
     total_suggestions = get_total_suggestions(app.database["suggestions"])
-    app.aggregate_stats[1][0]["description"] = total_suggestions
+    app.aggregate_stats[1][0]["description"] = intcomma(total_suggestions)
     # Total pending suggestions
-    app.aggregate_stats[1][1]["description"] = get_total_suggestions(
-        app.database["suggestions"], {"state": "pending"}
+    app.aggregate_stats[1][1]["description"] = intcomma(
+        get_total_suggestions(app.database["suggestions"], {"state": "pending"})
     )
     # Total resolved suggestions
-    app.aggregate_stats[1][2]["description"] = get_total_suggestions(
-        app.database["suggestions"], {"state": {"$in": ["approved", "rejected"]}}
+    app.aggregate_stats[1][2]["description"] = intcomma(
+        get_total_suggestions(
+            app.database["suggestions"], {"state": {"$in": ["approved", "rejected"]}}
+        )
     )
-    app.aggregate_stats[1][3]["description"] = get_total_suggestions(
-        app.database["suggestions"], {"state": "cleared"}
+    app.aggregate_stats[1][3]["description"] = intcomma(
+        get_total_suggestions(app.database["suggestions"], {"state": "cleared"})
     )
     # Average suggestions per guild
     app.aggregate_stats[1][4]["description"] = str(
@@ -115,16 +118,16 @@ def update_aggregate(app: Container):
     )
 
     # Fully configured guilds
-    app.aggregate_stats[2][0]["description"] = get_total_fully_configured_guilds(
-        app.database["guild_configs"]
+    app.aggregate_stats[2][0]["description"] = intcomma(
+        get_total_fully_configured_guilds(app.database["guild_configs"])
     )
     # Guilds with dm messages disabled
-    app.aggregate_stats[2][1]["description"] = get_total_guilds_with_dms_disabled(
-        app.database["guild_configs"]
+    app.aggregate_stats[2][1]["description"] = intcomma(
+        get_total_guilds_with_dms_disabled(app.database["guild_configs"])
     )
     # Users with dm messages disabled
-    app.aggregate_stats[2][2]["description"] = get_total_users_with_dms_disabled(
-        app.database["user_configs"]
+    app.aggregate_stats[2][2]["description"] = intcomma(
+        get_total_users_with_dms_disabled(app.database["user_configs"])
     )
 
     if os.environ.get("PROD", False):
