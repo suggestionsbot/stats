@@ -54,6 +54,24 @@ class Container:
                     "description": "...",
                 },
             ],
+            [
+                {
+                    "title": "Total errors",
+                    "description": "...",
+                },
+                {
+                    "title": "Handled errors",
+                    "description": "...",
+                },
+                {
+                    "title": "Re-raised errors",
+                    "description": "...",
+                },
+                {
+                    "title": "Un-Handled errors",
+                    "description": "...",
+                },
+            ],
         ]
 
         self.suggestions_stats: StatEntry = [

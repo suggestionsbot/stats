@@ -130,6 +130,36 @@ def update_aggregate(app: Container):
         get_total_users_with_dms_disabled(app.database["user_configs"])
     )
 
+    # Errors
+    total_errors = app.database["error_tracking"].count_documents({})
+    total_handled_errors = app.database["error_tracking"].count_documents(
+        {
+            "error": {
+                "$in": [
+                    "ErrorHandled",
+                    "BetaOnly",
+                    "MissingSuggestionsChannel",
+                    "MissingLogsChannel",
+                    "MissingPermissions",
+                    "SuggestionNotFound",
+                    "SuggestionTooLong",
+                    "InvalidGuildConfigOption",
+                    "CallableOnCooldown",
+                    "ConfiguredChannelNoLongerExists",
+                    "LocalizationKeyError",
+                ]
+            }
+        }
+    )
+    reraised_errors = app.database["error_tracking"].count_documents(
+        {"error": {"$in": ["Forbidden", "NotFound"]}}
+    )
+    total_unhandled_errors = total_errors - total_handled_errors - reraised_errors
+    app.aggregate_stats[3][0]["description"] = intcomma(str(total_errors))
+    app.aggregate_stats[3][1]["description"] = intcomma(str(total_handled_errors))
+    app.aggregate_stats[3][2]["description"] = intcomma(str(reraised_errors))
+    app.aggregate_stats[3][3]["description"] = intcomma(str(total_unhandled_errors))
+
     if os.environ.get("PROD", False):
         stats_db = app.database["site_stats_db"]
         stats_db.insert_one(
