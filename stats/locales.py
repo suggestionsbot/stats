@@ -1,5 +1,6 @@
 from collections import Counter
 
+from humanize import intcomma
 from pymongo.collection import Collection
 
 from stats import Container
@@ -68,6 +69,6 @@ def update_aggregate(container: Container):
         entry = []
         for item in chunk:
             key = lookups.get(item[0], item[0])
-            entry.append(Entry(title=key, description=str(item[1])))
+            entry.append(Entry(title=key, description=intcomma(str(item[1]))))
 
         container.locale_stats.append(entry)
