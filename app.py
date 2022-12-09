@@ -12,7 +12,7 @@ from stats import Container, aggregate, commands, locales
 
 log = logging.getLogger(__name__)
 logging.basicConfig(
-    format="%(levelname)-7s | %(asctime)s | %(filename)12s:%(funcName)-12s | %(message)s",
+    format="%(levelname)-7s | %(asctime)s | %(message)s",
     datefmt="%I:%M:%S %p %d/%m/%Y",
     level=logging.INFO,
 )
@@ -29,6 +29,7 @@ nav_links: list[dict[Literal["name", "url"], str]] = [
     {"name": "Suggestions Commands", "url": "/suggestions"},
     {"name": "Configuration Commands", "url": "/config"},
     {"name": "Locale Data", "url": "/locales"},
+    {"name": "API", "url": "/api/all"},
 ]
 
 
@@ -89,6 +90,33 @@ def locale_stats():
         current_nav_link="Locale Data",
         stats_items=app.stats_container.locale_stats,
     )
+
+
+@app.route("/api/all")
+def api_locale_stats():
+    data = {"aggregate": {}, "suggestions": {}, "config": {}, "locales": {}}
+    for k, v in {
+        "aggregate": app.stats_container.aggregate_stats,
+        "suggestions": app.stats_container.suggestions_stats,
+        "config": app.stats_container.config_stats,
+        "locales": app.stats_container.locale_stats,
+    }.items():
+        for entry in v:
+            for s in entry:
+                title = s["title"].replace("-", "").lower().replace(" ", "_")
+                try:
+                    desc = s["description"]
+                    if "," in desc:
+                        desc = desc.replace(",", "")
+                        desc = int(desc)
+                    elif "." in desc or desc.isnumeric():
+                        desc = float(desc)
+                except:
+                    desc = s["description"]
+
+                data[k][title] = desc
+
+    return data
 
 
 def populate_stats():
