@@ -103,16 +103,22 @@ def api_locale_stats():
     }.items():
         for entry in v:
             for s in entry:
-                title = s["title"].replace("-", "").lower().replace(" ", "_")
+                title = (
+                    s["title"]
+                    .replace("-", "")
+                    .lower()
+                    .replace(" ", "_")
+                    .replace(",", "")
+                )
                 try:
-                    desc = s["description"]
+                    desc = s["description"].lower()
                     if "," in desc:
                         desc = desc.replace(",", "")
                         desc = int(desc)
                     elif "." in desc or desc.isnumeric():
                         desc = float(desc)
                 except:
-                    desc = s["description"]
+                    desc = s["description"].lower()
 
                 data[k][title] = desc
 
