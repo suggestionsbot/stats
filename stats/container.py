@@ -112,3 +112,12 @@ class Container:
         self.locale_stats: StatEntry = [
             [Entry(title="N/A", description="No locale data")]
         ]
+
+        self.raw_growth_stats = {
+            "guilds": [],
+            "suggestions": [],
+            "active_users": [],
+        }
+        self.growth_stats: StatEntry = [
+            [Entry(title="N/A", description="No growth data")]
+        ]
