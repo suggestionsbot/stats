@@ -56,6 +56,13 @@ def get_total_users_with_dms_disabled(
     return str(collection.count_documents({"dm_messages_disabled": True}))
 
 
+def get_total_guilds_with_suggestions_queue(
+    collection: pymongo.collection.Collection,
+) -> str:
+    assert collection.name == "guild_configs"
+    return str(collection.count_documents({"uses_suggestion_queue": True}))
+
+
 def get_total_fully_configured_guilds(collection: pymongo.collection.Collection) -> str:
     assert collection.name == "guild_configs"
     total = collection.find(
@@ -128,6 +135,10 @@ def update_aggregate(app: Container):
     # Users with dm messages disabled
     app.aggregate_stats[2][2]["description"] = intcomma(
         get_total_users_with_dms_disabled(app.database["user_configs"])
+    )
+    # Guilds using queue
+    app.aggregate_stats[2][3]["description"] = intcomma(
+        get_total_guilds_with_suggestions_queue(app.database["guild_configs"])
     )
 
     # Errors

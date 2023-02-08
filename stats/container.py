@@ -53,6 +53,10 @@ class Container:
                     "title": "Users with dm messages disabled",
                     "description": "...",
                 },
+                {
+                    "title": "Guilds with suggestions queues",
+                    "description": "...",
+                },
             ],
             [
                 {
