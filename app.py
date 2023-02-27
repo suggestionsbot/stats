@@ -104,6 +104,39 @@ def growth_stats():
     )
 
 
+@app.route("/api/events/interaction_create")
+def api_events_interaction_create():
+    ic_db = app.stats_container.database["interaction_create_stats"]
+    total = 0
+    cluster_counts = {1: [], 2: [], 3: [], 4: [], 5: [], 6: []}
+    for entry in ic_db.find({}):
+        if entry["cluster"] in cluster_counts:
+            cluster_counts[entry["cluster"]].append(entry)
+
+            total += entry["count"]
+
+    ts_hour = 0
+    cluster_data = {}
+    for k, v in cluster_counts.items():
+        if not v:
+            continue
+
+        # Newest first
+        v = sorted(v, reverse=True, key=lambda x: x["inserted_at"])
+        ts_hour += v[0]["count"]
+
+        cluster_data[k] = {
+            "total_seen": sum([d["count"] for d in v]),
+            "total_seen_this_hour": v[0]["count"],
+        }
+
+    return {
+        "total_seen": total,
+        "total_seen_this_hour": ts_hour,
+        "cluster_data": cluster_data,
+    }
+
+
 @app.route("/api/all")
 def api_locale_stats():
     data = {
